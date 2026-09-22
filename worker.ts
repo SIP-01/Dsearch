@@ -120,6 +120,7 @@ async function proxyChat(request: Request, env: Env): Promise<Response> {
   const config = await readEngineConfig(env);
   if (!config || !config.enabled) {
     return json({ error: { message: 'Engine AI is not configured on this deployment', type: 'unavailable' } }, 503, request);
+  }
 
   const ip = request.headers.get('CF-Connecting-IP') ?? 'anonymous';
   if (rateLimited(ip)) {
@@ -136,18 +137,6 @@ async function proxyChat(request: Request, env: Env): Promise<Response> {
   const payload = validateChatPayload(body);
   if (typeof payload === 'string') {
     return json({ error: { message: payload, type: 'invalid_request' } }, 400, request);
-  }
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: { message: 'Body must be JSON', type: 'invalid_request' } }, 400);
-  }
-
-  const payload = validateChatPayload(body);
-  if (typeof payload === 'string') {
-    return json({ error: { message: payload, type: 'invalid_request' } }, 400);
   }
 
   const upstream = await fetch(`${config.endpoint.replace(/\/$/, '')}/chat/completions`, {

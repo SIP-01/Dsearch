@@ -33,18 +33,27 @@ export type { EngineAIStatus } from '@/lib/ai/engineProxy';
 /**
  * Base of the engine-AI proxy (worker.ts).
  *
- * Default is same-origin `/api/ai` — correct when the worker serves the
- * static app itself (wrangler deploy with assets) or when the host rewrites
- * /api/* to the worker. Deployments on static hosts whose rewrites cannot
- * forward POST bodies can point the engine base at the worker directly via
- * the non-secret build var VITE_ENGINE_API_BASE
- * (e.g. https://dsearch.workers.dev/api/ai). The worker reflects an
- * allowlisted Origin, so cross-origin calls carry no cookies and expose
- * no keys. Forks that co-locate the worker simply leave the var unset and
- * keep the same-origin default.
+ * Resolution order:
+ *   1. VITE_ENGINE_API_BASE build var (non-secret) — explicit override.
+ *   2. On dsearch.com / www.dsearch.com (static hosting, no same-origin
+ *      worker): the deployed engine worker at dsearch.dsearch.workers.dev.
+ *   3. Everywhere else (forks, localhost, wrangler co-located deploys):
+ *      same-origin `/api/ai`, exactly as before.
+ *
+ * The worker reflects an allowlisted Origin, so cross-origin calls carry
+ * no cookies and expose no keys.
  */
+const PROD_ENGINE_BASE = 'https://dsearch.dsearch.workers.dev/api/ai';
+
+function defaultEngineBase(): string {
+  if (typeof location !== 'undefined' && /^(www\.)?dsearch\.com$/.test(location.hostname)) {
+    return PROD_ENGINE_BASE;
+  }
+  return '/api/ai';
+}
+
 export const ENGINE_AI_BASE: string =
-  (import.meta.env.VITE_ENGINE_API_BASE as string | undefined)?.replace(/\/$/, '') || '/api/ai';
+  (import.meta.env.VITE_ENGINE_API_BASE as string | undefined)?.replace(/\/$/, '') || defaultEngineBase();
 
 /** Built-in free tier — shared, rate-limited PPQ key. Provider + model are
  *  locked on this tier. PUBLIC BY DESIGN (ships in the bundle): it exists so
