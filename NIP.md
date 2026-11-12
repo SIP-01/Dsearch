@@ -17,7 +17,7 @@ formats. Current support:
 | NIP-34 | Git collaboration | 30617, 1621, 1618, 1617 | ✅ read — Code tab: repos (link `web`/`clone`), issues, PRs, patches from the read-only ngit/GRASP pool (`GIT_RELAYS`) |
 | NIP-35 | Torrents | 2003 | ✅ read — results link the constructed magnet URI |
 | NIP-36 | Content warnings | any | ✅ `content-warning` events render collapsed until tapped |
-| NIP-51 | Lists and bookmarks | 10003, 30003 | 🚧 shared-core NIP-44 public/private list helpers in review; app bookmark-list UX rollout pending |
+| NIP-51 | Lists and bookmarks | 10003, 30003 | ✅ read + write global kind-10003 bookmarks; public tags and NIP-44-encrypted private items via the logged-in signer. Categorized kind-30003 sets supported by core helpers; category UI not yet exposed |
 | NIP-73 | External content IDs | — | ✅ NIP-73 web identifiers (k=web, i=normalized URL) used for external reactions and bookmark references |
 | NIP-85 | Trusted assertions | 10040, 30382–30385 | 🚧 shared-core provider validation and platform/personal WoT policy in review |
 | NIP-50 | Search capability | — | ✅ NIP-50 `search` filters on every Nostr read |
@@ -28,7 +28,7 @@ formats. Current support:
 | NIP-78 | App-specific data | 30078 | ✅ submissions / stakes / term signals (read + write) · role lists / affiliate rules / referral config (control plane, see below) · legacy cache (read-only, see below) |
 | NIP-92 | Media attachments (`imeta`) | 1 | ✅ read (inline thumbnails in results) |
 | NIP-94 | File metadata | 1063 | ✅ read (file results) |
-| NIP-B0 | Web bookmarks | 39701 | ✅ read (Community provider — user-curated links) |
+| NIP-B0 | Web bookmarks | 39701 | ✅ read + write public web bookmarks; public saves create kind 39701 and NIP-51 list membership. Private saves never publish kind 39701 |
 | NIP-C0 | Code snippets | 1337 | ✅ read (Code tab, language badges) |
 | BUD-03 | Blossom user server list | 10063 | ✅ read + write (uploads) |
 | SIP-01 | Search Index Protocol | 39697 | ✅ read + write ([spec](docs/SIP-01.md)) |
