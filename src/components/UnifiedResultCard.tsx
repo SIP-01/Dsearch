@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { OnionWarningDialog } from '@/components/OnionWarningDialog';
 import { ReportDialog } from '@/components/ReportDialog';
 import { VoteButtons } from '@/components/VoteButtons';
+import { BookmarkButton } from '@/components/BookmarkButton';
 import { sanitizeUrl, sanitizeResultUrl } from '@/lib/sanitizeUrl';
 import { useAffiliateRules } from '@/hooks/useAffiliates';
 import { applyAffiliateRules } from '@/lib/affiliates';
@@ -217,6 +218,7 @@ function NostrCard({ result, className }: { result: SearchResult; className?: st
           )}
           <span className="flex items-center gap-1 ml-auto">
             <VoteButtons result={result} />
+            <BookmarkButton result={result} />
             {result.nostrEvent && (
               <button
                 type="button"
@@ -370,6 +372,7 @@ function ExternalResultCard({ result, className }: { result: SearchResult; class
       {/* Footer: votes, author, timestamp, tags, report */}
       <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground/60 flex-wrap">
         <VoteButtons result={result} />
+            <BookmarkButton result={result} />
         {result.author && <span>by {result.author}</span>}
         {result.timestamp && <span>{timeAgo(result.timestamp)}</span>}
         {result.tags && result.tags.length > 0 && (
