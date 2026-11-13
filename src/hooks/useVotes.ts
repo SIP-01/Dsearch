@@ -120,16 +120,19 @@ export function useVoteActions() {
           created_at: Math.floor(Date.now() / 1000),
           tags: template.tags,
           content: template.content,
-          pubkey: identity.pubkeyHex,
         },
         hexToBytes(identity.secretHex),
       );
-      await Promise.allSettled(
+      const publishResults = await Promise.allSettled(
         getIndexRelayUrls().map(async (url) => {
           const relay = getVoteRelay(url);
           await relay.event(signedEvent, { signal: AbortSignal.timeout(5000) });
         }),
       );
+      const acceptedBy = publishResults.filter((result) => result.status === 'fulfilled').length;
+      if (acceptedBy === 0) {
+        throw new Error('Vote was not accepted by any index relay. No local vote was recorded; try again later.');
+      }
     }
 
     // Record locally (active button state) + refresh tallies.

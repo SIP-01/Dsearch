@@ -11,15 +11,34 @@
  *    https/http (+ magnet with an xt hash) may become clickable result
  *    links; javascript:/data:/file:/blob:/chrome:/intent: never may.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 
 import { classifyQuery, providerAllowlistFor } from '@/lib/queryClassify';
 import { sanitizeUrl, sanitizeResultUrl, sanitizePublicUrl } from '@/lib/sanitizeUrl';
 import { ALL_PROVIDERS } from '@/lib/providers/registry';
-import { TestApp } from '@/test/TestApp';
 import { UnifiedResultCard } from '@/components/UnifiedResultCard';
 import type { SearchResult } from '@/lib/providers/types';
+
+vi.mock('@/hooks/useAffiliates', () => ({
+  useAffiliateRules: () => ({ rules: [], isLoading: false }),
+}));
+vi.mock('@/hooks/useReferrals', () => ({
+  trackAffiliateClick: vi.fn(),
+}));
+vi.mock('@/components/VoteButtons', () => ({
+  VoteButtons: () => null,
+}));
+vi.mock('@/components/BookmarkButton', () => ({
+  BookmarkButton: () => null,
+}));
+vi.mock('@/components/ReportDialog', () => ({
+  ReportDialog: () => null,
+}));
+vi.mock('@/components/OnionWarningDialog', () => ({
+  OnionWarningDialog: () => null,
+}));
+
 
 /** A real, decodable npub (test-only value). */
 const TEST_NPUB = 'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6';
@@ -124,9 +143,7 @@ describe('result card link safety (hostile result data)', () => {
 
   it('does not render javascript: URLs as links', () => {
     const { container } = render(
-      <TestApp>
-        <UnifiedResultCard result={{ ...base, url: 'javascript:alert(1)' }} />
-      </TestApp>,
+      <UnifiedResultCard result={{ ...base, url: 'javascript:alert(1)' }} />,
     );
     expect(container.querySelector('a[href^="javascript:"]')).toBeNull();
     // No anchor at all for an unsafe external URL — the card still renders.
@@ -136,9 +153,7 @@ describe('result card link safety (hostile result data)', () => {
 
   it('renders https URLs as links', () => {
     const { container } = render(
-      <TestApp>
-        <UnifiedResultCard result={base} />
-      </TestApp>,
+      <UnifiedResultCard result={base} />,
     );
     const link = container.querySelector('a[href="https://example.com/"]');
     expect(link).not.toBeNull();
@@ -147,9 +162,7 @@ describe('result card link safety (hostile result data)', () => {
   it('renders magnet torrent links (NIP-35)', () => {
     const magnet = 'magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567&dn=test';
     const { container } = render(
-      <TestApp>
-        <UnifiedResultCard result={{ ...base, url: magnet, source: 'nostr' }} />
-      </TestApp>,
+      <UnifiedResultCard result={{ ...base, url: magnet, source: 'nostr' }} />,
     );
     expect(container.querySelector(`a[href^="magnet:"]`)).not.toBeNull();
   });

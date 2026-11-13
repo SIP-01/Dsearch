@@ -347,7 +347,7 @@ export function parseAdminAction(content: string): AdminAction | string {
     return 'enabled must be a boolean';
   }
 
-  return a as AdminAction;
+  return a as unknown as AdminAction;
 }
 
 /** Apply a validated action to the current config. Returns the new config

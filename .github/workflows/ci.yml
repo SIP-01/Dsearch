@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Type-check, test and build
+        run: npm test
+      - name: Lint audit (non-blocking while existing baseline is cleaned)
+        run: npm run lint
+        continue-on-error: true
