@@ -5,6 +5,8 @@ import { NostrLoginProvider } from '@nostrify/react/login';
 import NostrProvider from '@/components/NostrProvider';
 import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
+import { ENGINE_PROFILE } from '@/lib/engine/profile';
+import { getBrowserLanguage } from '@/lib/languageFilter';
 
 interface TestAppProps {
   children: React.ReactNode;
@@ -22,6 +24,13 @@ export function TestApp({ children }: TestAppProps) {
 
   const defaultConfig: AppConfig = {
     theme: 'light',
+    accentColor: ENGINE_PROFILE.branding.defaultAccent,
+    privacyMode: false,
+    autoIndex: false,
+    tabConfig: ENGINE_PROFILE.ui.tabConfig,
+    voteWithIdentity: false,
+    disabledProviders: ENGINE_PROFILE.search.disabledProviders,
+    languageFilter: [getBrowserLanguage()],
     relayMetadata: {
       relays: [
         { url: 'wss://relay.primal.net', read: true, write: true },
