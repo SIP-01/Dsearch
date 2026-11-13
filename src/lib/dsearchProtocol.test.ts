@@ -190,7 +190,6 @@ describe('moderation label namespaces', () => {
     expect(json).not.toContain('0xsearchstr');
     expect(template!.tags.some(([n, v]) => n === 'r' && v === 'https://example.com/page')).toBe(true);
     expect(template!.tags.some(([n]) => n === 'u')).toBe(false);
-    expect(template!.tags.some(([n]) => n === 'r' && n === 'u')).toBe(false);
   });
 
   it('parseHiddenLabel reads r + legacy u targets, canonical AND legacy namespaces', () => {
