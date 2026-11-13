@@ -36,7 +36,7 @@ export interface ProviderState {
 
 export interface UseProviderSearchOptions {
   query: string;
-  source: SearchSource | 'all';
+  source: SearchSource | 'all' | 'index';
   enabled?: boolean;
 }
 
