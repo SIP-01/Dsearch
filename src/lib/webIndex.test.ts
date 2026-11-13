@@ -254,7 +254,7 @@ describe('buildIndexEvent', () => {
     const sk = generateSecretKey();
     const template = (await buildIndexEvent(input))!;
     const signed = finalizeEvent(
-      { ...template, created_at: Math.floor(Date.now() / 1000), pubkey: getPublicKey(sk) },
+      { ...template, created_at: Math.floor(Date.now() / 1000) },
       sk,
     );
     expect(verifyEvent(signed)).toBe(true);
@@ -339,7 +339,7 @@ describe('parseIndexEvent', () => {
       capabilityAddress: '39698:' + 'a'.repeat(64) + ':example-tool',
     }))!;
     const event = finalizeEvent(
-      { ...template, created_at: 1754650000, pubkey: getPublicKey(sk) },
+      { ...template, created_at: 1754650000 },
       sk,
     );
     const obs = parseIndexEvent(event);
@@ -365,7 +365,7 @@ describe('verifyObservation (spec §18 step 2)', () => {
       description: 'Desc',
     }))!;
     const event = finalizeEvent(
-      { ...template, created_at: 1754650000, pubkey: getPublicKey(sk) },
+      { ...template, created_at: 1754650000 },
       sk,
     );
     return parseIndexEvent(event)!;
