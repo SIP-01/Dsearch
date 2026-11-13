@@ -68,7 +68,7 @@ export function getProvidersForSource(source: SearchSource | 'all' | 'index' | '
  * no clearnet APIs, no CORS proxies, no third-party servers.
  */
 export function getProvidersForPrivacy(
-  source: SearchSource | 'all',
+  source: SearchSource | 'all' | 'index',
   privacyOnly: boolean,
 ): SearchProvider[] {
   const providers = getProvidersForSource(source);
