@@ -78,15 +78,12 @@ function writeStored(secretHex: string): void {
 
 /** Generate a fresh secret key as 64-char hex, robust to lib return type. */
 function newSecretHex(): string {
-  const sk = generateSecretKey();
-  return typeof sk === 'string' ? sk.toLowerCase() : bytesToHex(sk as Uint8Array);
+  return bytesToHex(generateSecretKey());
 }
 
 function toIdentity(secretHex: string, fresh: boolean): IndexerIdentity {
-  // getPublicKey accepts the 32-byte secret; it returns hex in this nostr-tools
-  // version, but guard against a byte-array return either way.
-  const pub = getPublicKey(hexToBytes(secretHex));
-  const pubkeyHex = typeof pub === 'string' ? pub : bytesToHex(pub as Uint8Array);
+  // nostr-tools getPublicKey returns the 64-character hex public key.
+  const pubkeyHex = getPublicKey(hexToBytes(secretHex));
   return {
     secretHex,
     pubkeyHex,
