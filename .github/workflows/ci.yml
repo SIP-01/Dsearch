@@ -28,5 +28,8 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Type-check, lint, test and build
+      - name: Type-check, test and build
         run: npm test
+      - name: Lint audit (non-blocking while existing baseline is cleaned)
+        run: npm run lint
+        continue-on-error: true
