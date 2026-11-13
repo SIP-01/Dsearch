@@ -42,8 +42,8 @@ const BASE_WEIGHT = 0.55;
  * phrase ≈ +14 points, title ≈ +8 — strong enough to matter, small enough
  * that provider bands still show through for non-phrase queries.
  */
-const PHRASE_BOOST = 1.28;
-const TITLE_BOOST = 1.16;
+const PHRASE_BOOST = 1.12;
+const TITLE_BOOST = 1.05;
 
 /** Build legacy QueryTerms from the parsed query's text leaves only —
  *  filter values and operators never count as matchable words. */
