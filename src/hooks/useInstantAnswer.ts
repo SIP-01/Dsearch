@@ -346,7 +346,8 @@ export function useInstantAnswer(query: string, enabled: boolean): {
     ?? (nip05Enabled ? nip05Answer : undefined)
     ?? (urlEnabled ? urlAnswer : undefined)
     ?? (wikiEnabled ? wikiAnswer : undefined)
-    ?? (ddgEnabled ? ddgAnswer : undefined);
+    ?? (ddgEnabled ? ddgAnswer : undefined)
+    ?? null;
 
   return { answer, isLoading: wikiEnabled && isLoading };
 }
