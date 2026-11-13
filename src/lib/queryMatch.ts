@@ -43,7 +43,12 @@ export function normalizeText(text: string): string {
 /** Naive singular: "wallets"→"wallet", "queries"→"query", "pages"→"page". */
 function foldPlural(term: string): string {
   if (term.length > 4 && term.endsWith('ies')) return `${term.slice(0, -3)}y`;
-  if (term.length > 3 && term.endsWith('es')) return term.slice(0, -2);
+  // Remove "es" only for endings that conventionally add a whole syllable
+  // (boxes -> box, wishes -> wish, classes -> class). Words such as guides
+  // and pages pluralize with a final "s" only and must become guide/page.
+  if (term.length > 4 && /(ches|shes|sses|xes|zes)$/.test(term)) {
+    return term.slice(0, -2);
+  }
   if (term.length > 2 && term.endsWith('s') && !term.endsWith('ss')) return term.slice(0, -1);
   return term;
 }
