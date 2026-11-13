@@ -339,7 +339,7 @@ describe('parseIndexEvent', () => {
       capabilityAddress: '39698:' + 'a'.repeat(64) + ':example-tool',
     }))!;
     const event = finalizeEvent(
-      { ...template, created_at: 1754650000, pubkey: getPublicKey(sk) },
+      { ...template, created_at: 1754650000 },
       sk,
     );
     const obs = parseIndexEvent(event);
