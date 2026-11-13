@@ -343,10 +343,10 @@ export function useInstantAnswer(query: string, enabled: boolean): {
 
   const answer = calculator
     ?? nip19Answer
-    ?? (nip05Enabled ? nip05Answer ?? null : null)
-    ?? (urlEnabled ? urlAnswer ?? null : null)
-    ?? (wikiEnabled ? wikiAnswer ?? null : null)
-    ?? (ddgEnabled ? ddgAnswer ?? null : null);
+    ?? (nip05Enabled ? nip05Answer : undefined)
+    ?? (urlEnabled ? urlAnswer : undefined)
+    ?? (wikiEnabled ? wikiAnswer : undefined)
+    ?? (ddgEnabled ? ddgAnswer : undefined);
 
   return { answer, isLoading: wikiEnabled && isLoading };
 }
