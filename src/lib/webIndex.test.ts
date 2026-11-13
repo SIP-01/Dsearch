@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { finalizeEvent, generateSecretKey, getPublicKey, verifyEvent } from 'nostr-tools/pure';
+import { finalizeEvent, generateSecretKey, verifyEvent } from 'nostr-tools/pure';
 
 import {
   WEB_INDEX_KIND,
@@ -276,7 +276,6 @@ describe('parseIndexEvent', () => {
         created_at: 1754650000,
         tags: overrides.tags ?? template.tags,
         content: overrides.content ?? template.content,
-        pubkey: getPublicKey(sk),
       },
       sk,
     );
