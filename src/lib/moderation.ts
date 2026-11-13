@@ -170,7 +170,7 @@ export function buildHideLabel(target: { url?: string; eventId?: string }): {
     tags: [
       ['L', MODERATION_NS],
       ['l', 'hidden', MODERATION_NS],
-      targetTag,
+      ['r', target.url ? (normalizeIndexUrl(target.url) ?? target.url.trim()) : targetTag[1]],
       ['alt', `Dsearch moderation: hidden ${targetTag[0] === 'r' ? targetTag[1] : 'event'}`],
     ],
   };
