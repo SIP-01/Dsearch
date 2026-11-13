@@ -365,7 +365,7 @@ describe('verifyObservation (spec §18 step 2)', () => {
       description: 'Desc',
     }))!;
     const event = finalizeEvent(
-      { ...template, created_at: 1754650000, pubkey: getPublicKey(sk) },
+      { ...template, created_at: 1754650000 },
       sk,
     );
     return parseIndexEvent(event)!;
