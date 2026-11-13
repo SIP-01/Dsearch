@@ -90,7 +90,7 @@ async function fetchWikipediaAnswer(query: string, signal?: AbortSignal): Promis
   if (!searchRes.ok) return null;
 
   const searchData = await searchRes.json() as WikiSearchResponse;
-  const hits = searchData.query?.search ?? [];
+  const hits = searchData.query?.search || [];
   const match = hits.find((h) => isStrongTitleMatch(query, h.title));
   if (!match) return null;
 
@@ -115,10 +115,10 @@ async function fetchWikipediaAnswer(query: string, signal?: AbortSignal): Promis
   if (!extractRes.ok) return null;
 
   const extractData = await extractRes.json() as WikiExtractResponse;
-  const page = Object.values(extractData.query?.pages ?? {})[0];
+  const page = Object.values(extractData.query?.pages || {})[0];
   if (!page || page.missing || !page.extract) return null;
 
-  const title = page.title ?? match.title;
+  const title = page.title || match.title;
   return {
     type: 'wikipedia',
     title,
@@ -172,12 +172,12 @@ async function fetchDuckDuckGoAnswer(query: string, signal?: AbortSignal): Promi
   const text = answerText || abstract || definition;
   if (!text) return null;
 
-  const sourceUrl = sanitizeUrl(data.AbstractURL ?? '') || sanitizeUrl(data.DefinitionURL ?? '');
+  const sourceUrl = sanitizeUrl(data.AbstractURL || '') || sanitizeUrl(data.DefinitionURL || '');
   return {
     type: 'duckduckgo',
     heading: data.Heading?.trim() || query,
     text,
-    source: answerText ? 'DuckDuckGo' : (data.AbstractSource ?? data.DefinitionSource ?? 'DuckDuckGo'),
+    source: answerText ? 'DuckDuckGo' : (data.AbstractSource || data.DefinitionSource || 'DuckDuckGo'),
     url: sourceUrl || `https://duckduckgo.com/?q=${encodeURIComponent(query)}`,
     // DDG image paths are relative ("/i/abc.png").
     image: data.Image ? sanitizeUrl(`https://duckduckgo.com${data.Image}`) || undefined : undefined,
@@ -342,11 +342,11 @@ export function useInstantAnswer(query: string, enabled: boolean): {
   });
 
   const answer = calculator
-    ?? nip19Answer
-    ?? (nip05Enabled ? nip05Answer ?? null : null)
-    ?? (urlEnabled ? urlAnswer ?? null : null)
-    ?? (wikiEnabled ? wikiAnswer ?? null : null)
-    ?? (ddgEnabled ? ddgAnswer ?? null : null);
+    || nip19Answer
+    || (nip05Enabled ? nip05Answer || null : null)
+    || (urlEnabled ? urlAnswer || null : null)
+    || (wikiEnabled ? wikiAnswer || null : null)
+    || (ddgEnabled ? ddgAnswer || null : null);
 
   return { answer, isLoading: wikiEnabled && isLoading };
 }
