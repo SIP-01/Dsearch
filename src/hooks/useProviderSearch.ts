@@ -23,7 +23,7 @@ import { useSearchIndexer } from '@/hooks/useSearchIndexer';
 import { useModerationSet } from '@/hooks/useModeration';
 import { useAppContext } from '@/hooks/useAppContext';
 
-export type ProviderStatus = 'idle' | 'searching' | 'done' | 'error';
+export type ProviderStatus = 'idle' | 'searching' | 'done' | 'error' | 'cancelled';
 
 export interface ProviderState {
   id: string;
@@ -59,6 +59,9 @@ export interface UseProviderSearchResult {
   privacyMode: boolean;
   /** Providers blocked by Privacy Mode for the current source. */
   suppressedProviders: { id: string; name: string }[];
+  cancelSearch: () => void;
+  restartSearch: () => void;
+  isStopped: boolean;
 }
 
 /**
@@ -109,6 +112,7 @@ export function useProviderSearch({
 
   // Provider states tracked outside React Query for per-provider granularity.
   const [providerStates, setProviderStates] = useState<Map<string, ProviderState>>(new Map());
+  const [isStopped, setIsStopped] = useState(false);
   const statesRef = useRef(providerStates);
   statesRef.current = providerStates;
 
@@ -150,12 +154,33 @@ export function useProviderSearch({
     });
   }, []);
 
+  const searchQueryKey = ['provider-search', query, source, privacyMode, languageFilter] as const;
+
+  const cancelSearch = useCallback(() => {
+    setIsStopped(true);
+    void queryClient.cancelQueries({ predicate: (query) => ['provider-search', 'ai-answer', 'instant-answer', 'precommunity-ad', 'precommunity-keyword'].includes(String(query.queryKey[0])) });
+    setProviderStates((previous) => {
+      const next = new Map(previous);
+      for (const [id, state] of next) {
+        if (state.status === 'searching') next.set(id, { ...state, status: 'cancelled' });
+      }
+      return next;
+    });
+  }, [queryClient, query, source, privacyMode, languageFilter]);
+
+  const restartSearch = useCallback(() => {
+    setIsStopped(false);
+    void queryClient.invalidateQueries({ predicate: (query) => ['provider-search', 'ai-answer', 'instant-answer', 'precommunity-ad', 'precommunity-keyword'].includes(String(query.queryKey[0])) });
+  }, [queryClient, query, source, privacyMode, languageFilter]);
+
+  useEffect(() => { setIsStopped(false); }, [query, source]);
+
   // Main query — runs all providers in parallel.
   const { data, isFetching } = useQuery<{
     results: SearchResult[];
     suggestions: string[];
   }>({
-    queryKey: ['provider-search', query, source, privacyMode, languageFilter],
+    queryKey: searchQueryKey,
     queryFn: async ({ signal }) => {
       if (!query.trim()) return { results: [], suggestions: [] };
 
@@ -187,6 +212,11 @@ export function useProviderSearch({
               parsed: parsedQuery,
             });
 
+            if (signal.aborted) {
+              updateProviderState(provider.id, { status: 'cancelled', resultCount: 0 });
+              return { results: [], suggestions: [] } as ProviderSearchResponse;
+            }
+
             const latencyMs = Math.round(performance.now() - start);
 
             updateProviderState(provider.id, {
@@ -200,6 +230,10 @@ export function useProviderSearch({
             appendStreamed(streamKey, response.results, query);
             return response;
           } catch {
+            if (signal.aborted) {
+              updateProviderState(provider.id, { status: 'cancelled', resultCount: 0 });
+              return { results: [], suggestions: [] } as ProviderSearchResponse;
+            }
             const latencyMs = Math.round(performance.now() - start);
             updateProviderState(provider.id, {
               status: 'error',
@@ -210,6 +244,8 @@ export function useProviderSearch({
           }
         }),
       );
+
+      if (signal.aborted) throw new DOMException('Search cancelled', 'AbortError');
 
       for (const s of settled) {
         if (s.status === 'fulfilled') {
@@ -234,7 +270,7 @@ export function useProviderSearch({
         suggestions: [...new Set(allSuggestions)].slice(0, 8),
       };
     },
-    enabled: enabled && query.trim().length > 0,
+    enabled: enabled && !isStopped && query.trim().length > 0,
     staleTime: 30_000,
     retry: 0,
     // No placeholderData — a new query streams fresh results instead of
@@ -276,12 +312,13 @@ export function useProviderSearch({
       allResults.length > 0 &&
       query.trim() &&
       !isLoading &&
+      !isStopped &&
       indexedQueryRef.current !== query
     ) {
       indexedQueryRef.current = query;
       void indexResults(query, allResults);
     }
-  }, [allResults, query, isLoading, indexResults]);
+  }, [allResults, query, isLoading, isStopped, indexResults]);
 
   // Counts per source.
   const counts = useMemo(() => {
@@ -311,6 +348,9 @@ export function useProviderSearch({
     counts,
     privacyMode,
     suppressedProviders,
+    cancelSearch,
+    restartSearch,
+    isStopped,
   };
 }
 

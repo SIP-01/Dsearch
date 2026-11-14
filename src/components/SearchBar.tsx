@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -7,6 +7,7 @@ interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: (value: string) => void;
+  onCancel?: () => void;
   isLoading?: boolean;
   /** Large variant for the home page hero. */
   size?: 'default' | 'large';
@@ -18,12 +19,19 @@ export function SearchBar({
   value,
   onChange,
   onSubmit,
+  onCancel,
   isLoading = false,
   size = 'default',
   className,
   autoFocus = false,
 }: SearchBarProps) {
   const [focused, setFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const handleCancel = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    onCancel?.();
+    inputRef.current?.focus();
+  };
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +62,12 @@ export function SearchBar({
         'flex items-center justify-center shrink-0 text-muted-foreground',
         size === 'large' ? 'pl-5 pr-1' : 'pl-3.5 pr-0.5',
       )}>
-        {isLoading ? (
+        {isLoading && onCancel ? (
+          <Button type="button" variant="ghost" size="icon" onClick={handleCancel} aria-label="Stop search" title="Stop search" className="h-8 w-8 rounded-lg">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="sr-only">Stop search</span>
+          </Button>
+        ) : isLoading ? (
           <Loader2 className={cn('animate-spin', size === 'large' ? 'w-5 h-5' : 'w-4 h-4')} />
         ) : (
           <Search className={cn(size === 'large' ? 'w-5 h-5' : 'w-4 h-4')} />
@@ -62,6 +75,7 @@ export function SearchBar({
       </div>
 
       <input
+        ref={inputRef}
         id="search-input"
         type="text"
         value={value}
