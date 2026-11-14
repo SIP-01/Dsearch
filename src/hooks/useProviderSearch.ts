@@ -23,7 +23,7 @@ import { useSearchIndexer } from '@/hooks/useSearchIndexer';
 import { useModerationSet } from '@/hooks/useModeration';
 import { useAppContext } from '@/hooks/useAppContext';
 
-export type ProviderStatus = 'idle' | 'searching' | 'done' | 'error';
+export type ProviderStatus = 'idle' | 'searching' | 'done' | 'error' | 'cancelled';
 
 export interface ProviderState {
   id: string;
@@ -59,6 +59,7 @@ export interface UseProviderSearchResult {
   privacyMode: boolean;
   /** Providers blocked by Privacy Mode for the current source. */
   suppressedProviders: { id: string; name: string }[];
+  cancelSearch: () => void;
 }
 
 /**
@@ -150,12 +151,25 @@ export function useProviderSearch({
     });
   }, []);
 
+  const searchQueryKey = ['provider-search', query, source, privacyMode, languageFilter] as const;
+
+  const cancelSearch = useCallback(() => {
+    void queryClient.cancelQueries({ queryKey: searchQueryKey, exact: true });
+    setProviderStates((previous) => {
+      const next = new Map(previous);
+      for (const [id, state] of next) {
+        if (state.status === 'searching') next.set(id, { ...state, status: 'cancelled' });
+      }
+      return next;
+    });
+  }, [queryClient, query, source, privacyMode, languageFilter]);
+
   // Main query — runs all providers in parallel.
   const { data, isFetching } = useQuery<{
     results: SearchResult[];
     suggestions: string[];
   }>({
-    queryKey: ['provider-search', query, source, privacyMode, languageFilter],
+    queryKey: searchQueryKey,
     queryFn: async ({ signal }) => {
       if (!query.trim()) return { results: [], suggestions: [] };
 
@@ -200,6 +214,10 @@ export function useProviderSearch({
             appendStreamed(streamKey, response.results, query);
             return response;
           } catch {
+            if (signal.aborted) {
+              updateProviderState(provider.id, { status: 'cancelled', resultCount: 0 });
+              return { results: [], suggestions: [] } as ProviderSearchResponse;
+            }
             const latencyMs = Math.round(performance.now() - start);
             updateProviderState(provider.id, {
               status: 'error',
@@ -210,6 +228,8 @@ export function useProviderSearch({
           }
         }),
       );
+
+      if (signal.aborted) throw new DOMException('Search cancelled', 'AbortError');
 
       for (const s of settled) {
         if (s.status === 'fulfilled') {
@@ -311,6 +331,7 @@ export function useProviderSearch({
     counts,
     privacyMode,
     suppressedProviders,
+    cancelSearch,
   };
 }
 
