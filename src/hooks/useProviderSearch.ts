@@ -170,7 +170,7 @@ export function useProviderSearch({
 
   const restartSearch = useCallback(() => {
     setIsStopped(false);
-    void queryClient.invalidateQueries({ queryKey: searchQueryKey, exact: true });
+    void queryClient.invalidateQueries({ predicate: (query) => ['provider-search', 'ai-answer', 'instant-answer', 'precommunity-ad', 'precommunity-keyword'].includes(String(query.queryKey[0])) });
   }, [queryClient, query, source, privacyMode, languageFilter]);
 
   useEffect(() => { setIsStopped(false); }, [query, source]);
