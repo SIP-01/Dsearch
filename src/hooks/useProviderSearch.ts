@@ -60,6 +60,8 @@ export interface UseProviderSearchResult {
   /** Providers blocked by Privacy Mode for the current source. */
   suppressedProviders: { id: string; name: string }[];
   cancelSearch: () => void;
+  restartSearch: () => void;
+  isStopped: boolean;
 }
 
 /**
@@ -110,6 +112,7 @@ export function useProviderSearch({
 
   // Provider states tracked outside React Query for per-provider granularity.
   const [providerStates, setProviderStates] = useState<Map<string, ProviderState>>(new Map());
+  const [isStopped, setIsStopped] = useState(false);
   const statesRef = useRef(providerStates);
   statesRef.current = providerStates;
 
@@ -154,6 +157,7 @@ export function useProviderSearch({
   const searchQueryKey = ['provider-search', query, source, privacyMode, languageFilter] as const;
 
   const cancelSearch = useCallback(() => {
+    setIsStopped(true);
     void queryClient.cancelQueries({ queryKey: searchQueryKey, exact: true });
     setProviderStates((previous) => {
       const next = new Map(previous);
@@ -163,6 +167,13 @@ export function useProviderSearch({
       return next;
     });
   }, [queryClient, query, source, privacyMode, languageFilter]);
+
+  const restartSearch = useCallback(() => {
+    setIsStopped(false);
+    void queryClient.invalidateQueries({ queryKey: searchQueryKey, exact: true });
+  }, [queryClient, query, source, privacyMode, languageFilter]);
+
+  useEffect(() => { setIsStopped(false); }, [query, source]);
 
   // Main query — runs all providers in parallel.
   const { data, isFetching } = useQuery<{
@@ -254,7 +265,7 @@ export function useProviderSearch({
         suggestions: [...new Set(allSuggestions)].slice(0, 8),
       };
     },
-    enabled: enabled && query.trim().length > 0,
+    enabled: enabled && !isStopped && query.trim().length > 0,
     staleTime: 30_000,
     retry: 0,
     // No placeholderData — a new query streams fresh results instead of
@@ -296,12 +307,13 @@ export function useProviderSearch({
       allResults.length > 0 &&
       query.trim() &&
       !isLoading &&
+      !isStopped &&
       indexedQueryRef.current !== query
     ) {
       indexedQueryRef.current = query;
       void indexResults(query, allResults);
     }
-  }, [allResults, query, isLoading, indexResults]);
+  }, [allResults, query, isLoading, isStopped, indexResults]);
 
   // Counts per source.
   const counts = useMemo(() => {
@@ -332,6 +344,8 @@ export function useProviderSearch({
     privacyMode,
     suppressedProviders,
     cancelSearch,
+    restartSearch,
+    isStopped,
   };
 }
 
