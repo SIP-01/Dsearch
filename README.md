@@ -53,7 +53,7 @@ runnable by anyone:
                                   │
                          ┌────────▼────────┐
                          │       SIP       │
-                         │ Search Protocol │   SIP-01 (documents, v1.2)
+                         │ Search Protocol │   SIP-01 (documents, v1.3)
                          └────────┬────────┘   SIP-02 (queries, draft)
                                   │
               ┌───────────────────┼───────────────────┐
